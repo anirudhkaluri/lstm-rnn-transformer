@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RNN Lessons</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #1a1d27;
+      border-right: 1px solid #2d3148;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px 0;
+    }
+
+    #sidebar h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6b7280;
+      padding: 0 20px 12px;
+    }
+
+    .chapter-link {
+      display: block;
+      padding: 10px 20px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.5;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chapter-link:hover {
+      background: #222537;
+      color: #e2e8f0;
+    }
+
+    .chapter-link.active {
+      background: #1e2235;
+      border-left-color: #6366f1;
+      color: #a5b4fc;
+      font-weight: 500;
+    }
+
+    /* Main content */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 48px 64px;
+      max-width: 860px;
+    }
+
+    #content h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; margin-bottom: 24px; line-height: 1.3; }
+    #content h2 { font-size: 1.35rem; font-weight: 600; color: #e2e8f0; margin: 40px 0 16px; border-bottom: 1px solid #2d3148; padding-bottom: 8px; }
+    #content h3 { font-size: 1.1rem; font-weight: 600; color: #cbd5e1; margin: 28px 0 12px; }
+    #content p  { line-height: 1.8; color: #cbd5e1; margin-bottom: 16px; font-size: 15px; }
+    #content ul, #content ol { padding-left: 24px; margin-bottom: 16px; }
+    #content li { line-height: 1.8; color: #cbd5e1; font-size: 15px; margin-bottom: 4px; }
+    #content strong { color: #f1f5f9; font-weight: 600; }
+    #content em { color: #a5b4fc; }
+    #content hr { border: none; border-top: 1px solid #2d3148; margin: 32px 0; }
+    #content blockquote { border-left: 3px solid #6366f1; padding: 4px 20px; margin: 20px 0; background: #1a1d27; border-radius: 0 8px 8px 0; }
+    #content blockquote p { color: #a5b4fc; margin: 0; }
+
+    #content table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    #content th {
+      background: #1e2235;
+      color: #a5b4fc;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 16px;
+      border: 1px solid #2d3148;
+    }
+    #content td {
+      padding: 9px 16px;
+      border: 1px solid #2d3148;
+      color: #cbd5e1;
+    }
+    #content tr:nth-child(even) td { background: #161928; }
+
+    #content code {
+      background: #1e2235;
+      color: #a5b4fc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+    #content pre {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    #content pre code {
+      background: none;
+      padding: 0;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+
+    #loading {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 80px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <h2>RNN Course</h2>
+</nav>
+
+<main id="content">
+  <p id="loading">Select a chapter to begin reading.</p>
+</main>
+
+<script>
+  const chapters = [
+    { label: "Chapter 1 — What is an RNN",           file: "chapter-1-what-is-an-rnn.md" },
+    { label: "Chapter 2 — RNN vs Regular Networks",   file: "chapter-2-rnn-vs-regular-networks.md" },
+    { label: "Chapter 3 — RNN Loop with Numbers",     file: "chapter-3-rnn-loop-with-numbers.md" },
+    { label: "Chapter 4 — BPTT: How RNN Learns",      file: "chapter-4-bptt-how-rnn-learns.md" },
+    { label: "Chapter 5 — Vanishing Gradient",        file: "chapter-5-vanishing-gradient.md" },
+    { label: "Chapter 6 — Notation & Vectors",        file: "chapter-6-notations-vectors-dimensions.md" },
+    { label: "Chapter 6b — Embeddings",               file: "chapter-6b-embeddings.md" },
+    { label: "Chapter 7 — BPTT Detailed",             file: "chapter-7-bptt-detailed.md" },
+    { label: "Chapter 8 — Derivative Flow",           file: "chapter-8-derivative-flow.md" },
+  ];
+
+  const sidebar = document.getElementById('sidebar');
+  const content = document.getElementById('content');
+
+  let activeLink = null;
+
+  chapters.forEach(ch => {
+    const a = document.createElement('div');
+    a.className = 'chapter-link';
+    a.textContent = ch.label;
+    a.addEventListener('click', () => loadChapter(ch.file, a));
+    sidebar.appendChild(a);
+  });
+
+  function loadChapter(file, linkEl) {
+    if (activeLink) activeLink.classList.remove('active');
+    activeLink = linkEl;
+    linkEl.classList.add('active');
+
+    content.innerHTML = '<p id="loading">Loading…</p>';
+
+    fetch(file)
+      .then(r => r.text())
+      .then(md => {
+        content.innerHTML = marked.parse(md);
+        // Re-render MathJax
+        if (window.MathJax) {
+          MathJax.typesetPromise([content]).catch(console.error);
+        }
+        content.scrollTop = 0;
+      })
+      .catch(() => {
+        content.innerHTML = '<p style="color:#f87171">Could not load file.</p>';
+      });
+  }
+
+  // Load first chapter by default
+  const firstLink = sidebar.querySelectorAll('.chapter-link')[0];
+  loadChapter(chapters[0].file, firstLink);
+</script>
+</body>
+</html>
